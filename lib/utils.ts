@@ -1,4 +1,4 @@
-import { Payment } from "@/app/table/columns";
+import { Payment } from "@/components/table/columns";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
