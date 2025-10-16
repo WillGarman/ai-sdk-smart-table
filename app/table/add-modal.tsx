@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { CornerDownLeftIcon } from "lucide-react";
 
 // Component for the add column dialog
 export const AddColumnDialog = ({
@@ -52,7 +53,7 @@ export const AddColumnDialog = ({
 
         <Input
           type="text"
-          placeholder="field name"
+          placeholder="Payment failed?"
           value={fieldName}
           onChange={(e) => setFieldName(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -60,7 +61,7 @@ export const AddColumnDialog = ({
 
         <DialogFooter>
           <Button type="submit" onClick={handleAdd}>
-            Add
+            Add <CornerDownLeftIcon className="size-[12px]" />
           </Button>
         </DialogFooter>
       </DialogContent>

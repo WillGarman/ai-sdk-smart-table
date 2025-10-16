@@ -1,103 +1,93 @@
 "use client";
 
-import { useState } from "react";
-import { getColumns, Payment } from "./columns";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 import { AddColumnDialog } from "./add-modal";
-
-// Mock data function
-function getData(): Payment[] {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "728ed52f",
-      amount: 100,
-      status: "pending",
-      email: "m@example.com",
-    },
-    {
-      id: "489e1d0e",
-      amount: 250,
-      status: "processing",
-      email: "john@example.com",
-    },
-    {
-      id: "629f3a2b",
-      amount: 75,
-      status: "success",
-      email: "sarah@example.com",
-    },
-    {
-      id: "837c4d5f",
-      amount: 320,
-      status: "failed",
-      email: "alex@example.com",
-    },
-    {
-      id: "945b6e8a",
-      amount: 150,
-      status: "pending",
-      email: "emma@example.com",
-    },
-    {
-      id: "156d7f9c",
-      amount: 500,
-      status: "success",
-      email: "mike@example.com",
-    },
-    {
-      id: "267e8a1d",
-      amount: 89,
-      status: "processing",
-      email: "lisa@example.com",
-    },
-    {
-      id: "378f9b2e",
-      amount: 425,
-      status: "failed",
-      email: "david@example.com",
-    },
-    {
-      id: "489a0c3f",
-      amount: 199,
-      status: "success",
-      email: "anna@example.com",
-    },
-    {
-      id: "590b1d4a",
-      amount: 67,
-      status: "pending",
-      email: "chris@example.com",
-    },
-    {
-      id: "601c2e5b",
-      amount: 380,
-      status: "processing",
-      email: "kate@example.com",
-    },
-  ];
-}
+import {
+  getData,
+  validateColumnName,
+  isEditableElement,
+  processTableData,
+  cleanupCellValuesForColumn,
+  updateCellValue,
+} from "@/lib/utils";
 
 export default function DemoPage() {
-  const data = getData();
-
   // State to track dynamic column names
   const [dynamicColumns, setDynamicColumns] = useState<string[]>([]);
   const [openAddColumn, setOpenAddColumn] = useState(false);
 
+  // State to store generated cell values
+  const [cellValues, setCellValues] = useState<
+    Record<string, Record<string, string>>
+  >({});
+
   // Handler to add a new column
   const handleAddColumn = (columnName: string) => {
-    if (columnName.trim() && !dynamicColumns.includes(columnName.trim())) {
+    if (validateColumnName(columnName, dynamicColumns)) {
       setDynamicColumns([...dynamicColumns, columnName.trim()]);
     }
   };
 
-  const handleOpenAddColumn = () => {
-    setOpenAddColumn(true);
-  };
+  // Handler to delete a column
+  const handleDeleteColumn = useCallback((columnName: string) => {
+    setDynamicColumns((prev) => prev.filter((col) => col !== columnName));
+    // Clean up cell values for the deleted column
+    setCellValues((prev) => cleanupCellValuesForColumn(prev, columnName));
+  }, []);
 
-  // Generate columns with the add column callback and current dynamic columns
-  const columns = getColumns(handleOpenAddColumn, dynamicColumns);
+  // Memoize the handler to prevent recreation on every render
+  const handleOpenAddColumn = useCallback(() => {
+    setOpenAddColumn(true);
+  }, []);
+
+  // Handler to update cell values when they are generated
+  const handleCellValueUpdate = useCallback(
+    (rowId: string, columnId: string, value: string) => {
+      setCellValues((prev) => updateCellValue(prev, rowId, columnId, value));
+    },
+    []
+  );
+
+  // Keyboard shortcut: Pressing "n" opens the Add Column dialog, unless focus is in an editable field
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== "n") return;
+
+      const target = event.target as HTMLElement | null;
+
+      if (isEditableElement(target)) return;
+
+      event.preventDefault();
+      setOpenAddColumn(true);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Memoize data to include stored cell values
+  const data = useMemo(() => {
+    const baseData = getData(dynamicColumns);
+    return processTableData(baseData, dynamicColumns, cellValues);
+  }, [dynamicColumns, cellValues]);
+
+  const columns = useMemo(
+    () =>
+      getColumns(
+        handleOpenAddColumn,
+        dynamicColumns,
+        handleCellValueUpdate,
+        handleDeleteColumn
+      ),
+    [
+      handleOpenAddColumn,
+      dynamicColumns,
+      handleCellValueUpdate,
+      handleDeleteColumn,
+    ]
+  );
 
   return (
     <div className="container mx-auto py-10">

@@ -41,7 +41,7 @@ export function DataTable<TData, TValue>({
                 return (
                   <TableHead
                     key={header.id}
-                    className="border-r last:border-r-0"
+                    className="border-r last:border-r-0 font-bold"
                   >
                     {header.isPlaceholder
                       ? null
@@ -55,7 +55,7 @@ export function DataTable<TData, TValue>({
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className="overflow-x-auto">
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className="border-r last:border-r-0 "
+                    className="border-r last:border-r-0 relative"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
