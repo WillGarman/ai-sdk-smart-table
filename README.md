@@ -1,6 +1,6 @@
 # AI Table
 
-Simple intelligent table application that generates table cell values from new column names.
+Simple AI table application that generates table cell values from new column names.
 <video src="https://github.com/user-attachments/assets/71827de4-d3e3-47f9-97af-075a88dd21f5" />
 
 Tech used:
